@@ -1,6 +1,7 @@
 package dev.anilbeesetti.nextplayer.feature.player
 
 import android.graphics.Rect
+import android.os.Build
 import androidx.annotation.OptIn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -12,6 +13,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.compose.PlayerSurface
 import androidx.media3.ui.compose.SURFACE_TYPE_SURFACE_VIEW
+import androidx.media3.ui.compose.SURFACE_TYPE_TEXTURE_VIEW
 import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import androidx.media3.ui.compose.state.rememberPresentationState
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toContentScale
@@ -42,7 +44,14 @@ fun PlayerContentFrame(
     val presentationState = rememberPresentationState(player)
     PlayerSurface(
         player = player,
-        surfaceType = SURFACE_TYPE_SURFACE_VIEW,
+        surfaceType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // TextureView participates in the normal view hierarchy, allowing the Backdrop layer
+            // to sample the current video frame for real glass refraction. SurfaceView stays the
+            // efficient fallback on older Android versions where RenderEffect is unavailable.
+            SURFACE_TYPE_TEXTURE_VIEW
+        } else {
+            SURFACE_TYPE_SURFACE_VIEW
+        },
         modifier = modifier
             .resizeWithContentScale(
                 contentScale = videoZoomAndContentScaleState.videoContentScale.toContentScale(),
