@@ -60,6 +60,8 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.model.VideoContentScale
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.extensions.copy
+import dev.anilbeesetti.nextplayer.core.ui.glass.LiquidGlassSlider
+import dev.anilbeesetti.nextplayer.core.ui.glass.LocalLiquidGlassBackdrop
 import dev.anilbeesetti.nextplayer.feature.player.LocalUseMaterialYouControls
 import dev.anilbeesetti.nextplayer.feature.player.buttons.LoopButton
 import dev.anilbeesetti.nextplayer.feature.player.buttons.PlayerButton
@@ -99,7 +101,7 @@ fun ControlsBottomView(
             .padding(horizontal = 8.dp)
             .padding(top = 16.dp)
             .padding(bottom = 16.dp.takeIf { systemBarsPadding.calculateBottomPadding() == 0.dp } ?: 0.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 8.dp),
@@ -213,25 +215,43 @@ private fun PlayerSeekbar(
     val focusModifier = modifier
         .fillMaxWidth()
         .onFocusChanged { isFocused = it.isFocused }
+    val glassBackdrop = LocalLiquidGlassBackdrop.current
+    val safeDuration = duration.coerceAtLeast(1f)
+    val safePosition = position.coerceIn(0f, safeDuration)
+
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-        if (LocalUseMaterialYouControls.current) {
-            MaterialYouSlider(
-                modifier = focusModifier,
-                isFocused = isFocused,
-                value = position,
-                valueRange = 0f..duration,
-                onValueChange = onSeek,
-                onValueChangeFinished = onSeekFinished,
-            )
-        } else {
-            SimpleSlider(
-                modifier = focusModifier,
-                isFocused = isFocused,
-                value = position,
-                valueRange = 0f..duration,
-                onValueChange = onSeek,
-                onValueChangeFinished = onSeekFinished,
-            )
+        when {
+            glassBackdrop != null -> {
+                LiquidGlassSlider(
+                    modifier = focusModifier.height(32.dp),
+                    value = safePosition,
+                    valueRange = 0f..safeDuration,
+                    activeColor = MaterialTheme.colorScheme.primary,
+                    inactiveColor = Color.White.copy(alpha = if (isFocused) 0.34f else 0.22f),
+                    onValueChange = onSeek,
+                    onValueChangeFinished = onSeekFinished,
+                )
+            }
+            LocalUseMaterialYouControls.current -> {
+                MaterialYouSlider(
+                    modifier = focusModifier,
+                    isFocused = isFocused,
+                    value = safePosition,
+                    valueRange = 0f..safeDuration,
+                    onValueChange = onSeek,
+                    onValueChangeFinished = onSeekFinished,
+                )
+            }
+            else -> {
+                SimpleSlider(
+                    modifier = focusModifier,
+                    isFocused = isFocused,
+                    value = safePosition,
+                    valueRange = 0f..safeDuration,
+                    onValueChange = onSeek,
+                    onValueChangeFinished = onSeekFinished,
+                )
+            }
         }
     }
 }
@@ -281,7 +301,6 @@ private fun MaterialYouSlider(
                 val leftEnd = (playedPixels - gapHalf).coerceIn(0f, size.width)
                 val rightStart = (playedPixels + gapHalf).coerceIn(0f, size.width)
 
-                // Inactive track left side
                 if (leftEnd > 0f) {
                     drawRoundedRect(
                         offset = Offset(0f, 0f),
@@ -292,7 +311,6 @@ private fun MaterialYouSlider(
                     )
                 }
 
-                // Inactive track right side
                 if (rightStart < size.width) {
                     drawRoundedRect(
                         offset = Offset(rightStart, 0f),
@@ -303,7 +321,6 @@ private fun MaterialYouSlider(
                     )
                 }
 
-                // Active track
                 if (leftEnd > 0f) {
                     drawRoundedRect(
                         offset = Offset(0f, 0f),
@@ -376,7 +393,8 @@ private fun SimpleSlider(
         modifier = modifier.height(24.dp),
         thumb = {
             Box(
-                modifier = Modifier.size(thumbSize)
+                modifier = Modifier
+                    .size(thumbSize)
                     .shadow(4.dp, CircleShape)
                     .background(Color.White)
                     .then(
@@ -385,7 +403,6 @@ private fun SimpleSlider(
                         } else {
                             Modifier
                         },
-                    ),
             )
         },
         track = {
@@ -394,17 +411,17 @@ private fun SimpleSlider(
                     .fillMaxWidth()
                     .height(4.dp)
                     .clip(MaterialTheme.shapes.extraSmall)
-                    .background(Color.White.copy(0.5f))
+                    .background(Color.White.copy(0.5f)),
             ) {
                 if (valueRange.endInclusive > 0f) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth(value / valueRange.endInclusive)
                             .height(4.dp)
-                            .background(MaterialTheme.colorScheme.primary)
+                            .background(MaterialTheme.colorScheme.primary),
                     )
                 }
             }
-        }
+        },
     )
 }
