@@ -16,6 +16,8 @@ import androidx.media3.ui.compose.SURFACE_TYPE_SURFACE_VIEW
 import androidx.media3.ui.compose.SURFACE_TYPE_TEXTURE_VIEW
 import androidx.media3.ui.compose.modifiers.resizeWithContentScale
 import androidx.media3.ui.compose.state.rememberPresentationState
+import dev.anilbeesetti.nextplayer.core.ui.glass.LocalLiquidGlassBackdrop
+import dev.anilbeesetti.nextplayer.core.ui.glass.captureLiquidGlassBackdrop
 import dev.anilbeesetti.nextplayer.feature.player.extensions.toContentScale
 import dev.anilbeesetti.nextplayer.feature.player.state.ControlsVisibilityState
 import dev.anilbeesetti.nextplayer.feature.player.state.PictureInPictureState
@@ -42,6 +44,7 @@ fun PlayerContentFrame(
     subtitleConfiguration: SubtitleConfiguration,
 ) {
     val presentationState = rememberPresentationState(player)
+    val glassBackdrop = LocalLiquidGlassBackdrop.current
     PlayerSurface(
         player = player,
         surfaceType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -53,6 +56,13 @@ fun PlayerContentFrame(
             SURFACE_TYPE_SURFACE_VIEW
         },
         modifier = modifier
+            .then(
+                if (glassBackdrop != null) {
+                    Modifier.captureLiquidGlassBackdrop(glassBackdrop)
+                } else {
+                    Modifier
+                },
+            )
             .resizeWithContentScale(
                 contentScale = videoZoomAndContentScaleState.videoContentScale.toContentScale(),
                 sourceSizeDp = presentationState.videoSizeDp?.let { size ->
