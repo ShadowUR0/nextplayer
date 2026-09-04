@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -16,6 +15,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
+import dev.anilbeesetti.nextplayer.core.ui.glass.LiquidGlassSlider
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -82,7 +82,7 @@ fun PreferenceSlider(
                 description?.let {
                     Text(text = description)
                 }
-                Slider(
+                LiquidGlassSlider(
                     modifier = Modifier.fillMaxWidth(),
                     enabled = enabled,
                     value = value,
