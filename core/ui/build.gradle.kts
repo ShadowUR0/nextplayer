@@ -45,7 +45,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtimeCompose)
     implementation(libs.androidx.compose.material.iconsExtended)
-    implementation(libs.kyant.backdrop)
+    api(libs.kyant.backdrop)
 
     implementation(libs.androidx.hilt.navigation.compose)
 
