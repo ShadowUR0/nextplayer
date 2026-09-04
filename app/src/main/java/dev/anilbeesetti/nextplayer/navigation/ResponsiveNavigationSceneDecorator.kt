@@ -9,6 +9,7 @@ import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldLayout
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -16,6 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.navigation3.scene.Scene
 import androidx.navigation3.scene.SceneDecoratorStrategy
 import androidx.window.core.layout.WindowSizeClass
+import dev.anilbeesetti.nextplayer.core.ui.glass.LocalLiquidGlassBackdrop
+import dev.anilbeesetti.nextplayer.core.ui.glass.captureLiquidGlassBackdrop
+import dev.anilbeesetti.nextplayer.core.ui.glass.rememberLiquidGlassBackdrop
 
 /**
  * Wraps a [Scene] so that top-level destinations are shown alongside the app's navigation UI: a
@@ -60,7 +64,6 @@ class ResponsiveNavigationScene<T : Any>(
         if (currentKey == null || !isTopLevel(currentKey)) {
             scene.content()
         } else {
-
             val navLayoutType = when {
                 windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) -> {
                     NavigationSuiteType.NavigationRail
@@ -68,32 +71,34 @@ class ResponsiveNavigationScene<T : Any>(
 
                 else -> NavigationSuiteType.NavigationBar
             }
-
+            // The scene itself is recorded into a dedicated Backdrop layer. Navigation is rendered
+            // outside that layer and samples it, which avoids self-recursive glass rendering while
+            // still refracting the real thumbnails/content immediately behind the bar or rail.
+            val navigationBackdrop = rememberLiquidGlassBackdrop()
 
             NavigationSuiteScaffoldLayout(
                 layoutType = navLayoutType,
                 navigationSuite = {
-                    when (navLayoutType) {
-                        NavigationSuiteType.NavigationBar -> {
-                            navBarContent()
-                        }
-
-                        NavigationSuiteType.NavigationRail -> {
-                            navRailContent()
+                    CompositionLocalProvider(LocalLiquidGlassBackdrop provides navigationBackdrop) {
+                        when (navLayoutType) {
+                            NavigationSuiteType.NavigationBar -> navBarContent()
+                            NavigationSuiteType.NavigationRail -> navRailContent()
                         }
                     }
                 },
             ) {
                 Box(
-                    modifier = Modifier.consumeWindowInsets(
-                        NavigationRailDefaults.windowInsets.only(
-                            when (navLayoutType) {
-                                NavigationSuiteType.NavigationBar -> WindowInsetsSides.Bottom
-                                NavigationSuiteType.NavigationRail -> WindowInsetsSides.Start
-                                else -> WindowInsetsSides.Bottom
-                            }
+                    modifier = Modifier
+                        .consumeWindowInsets(
+                            NavigationRailDefaults.windowInsets.only(
+                                when (navLayoutType) {
+                                    NavigationSuiteType.NavigationBar -> WindowInsetsSides.Bottom
+                                    NavigationSuiteType.NavigationRail -> WindowInsetsSides.Start
+                                    else -> WindowInsetsSides.Bottom
+                                },
+                            ),
                         )
-                    )
+                        .captureLiquidGlassBackdrop(navigationBackdrop),
                 ) {
                     scene.content()
                 }
