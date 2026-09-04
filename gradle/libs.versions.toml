@@ -4,6 +4,7 @@ android-targetSdk = "37"
 android-minSdk = "23"
 android-jvm = "17"
 aboutlibraries = "15.0.4"
+backdrop = "2.0.1"
 accompanist = "0.37.3"
 androidGradlePlugin = "9.3.1"
 androidMaterial = "1.14.0"
@@ -96,6 +97,7 @@ google-android-material = { group = "com.google.android.material", name = "mater
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
 junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
+kyant-backdrop = { group = "io.github.kyant0", name = "backdrop", version.ref = "backdrop" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-guava", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
