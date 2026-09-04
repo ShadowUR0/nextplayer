@@ -403,6 +403,7 @@ private fun SimpleSlider(
                         } else {
                             Modifier
                         },
+                    ),
             )
         },
         track = {
