@@ -416,6 +416,7 @@ fun MediaPlayerScreen(
                                     mediaPresentationState = mediaPresentationState,
                                     controlsAlignment = when (playerPreferences.controlButtonsPosition) {
                                         ControlButtonsPosition.LEFT -> Alignment.Start
+                                        ControlButtonsPosition.CENTER -> Alignment.CenterHorizontally
                                         ControlButtonsPosition.RIGHT -> Alignment.End
                                     },
                                     videoContentScale = videoZoomAndContentScaleState.videoContentScale,
