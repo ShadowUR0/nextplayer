@@ -26,18 +26,12 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
         with:
           validate-wrappers: true
-          gradle-home-cache-cleanup: true
+          cache-cleanup: on-success
 
       - name: Build Project with gradle
         run: ./gradlew assembleDebug
 
-      - name: Run Local Tests
-        run: ./gradlew test
-
-      - name: Lint Checks
-        run: ./gradlew ktlintCheck
-
-        # Upload all build artifacts in separate steps. This can be shortened once https://github.com/actions/upload-artifact/pull/354 is merged.
+      # Upload APKs immediately after a successful compile so test/lint failures never hide a usable test build.
       - name: Upload artifact nextplayer-universal-debug.apk
         uses: actions/upload-artifact@v7
         with:
@@ -63,6 +57,12 @@ jobs:
         with:
           name: nextplayer-x86-debug.apk
           path: ./app/build/outputs/apk/debug/app-x86-debug.apk
+
+      - name: Run Local Tests
+        run: ./gradlew test
+
+      - name: Lint Checks
+        run: ./gradlew ktlintCheck
 
       - name: Upload build reports
         if: always()
