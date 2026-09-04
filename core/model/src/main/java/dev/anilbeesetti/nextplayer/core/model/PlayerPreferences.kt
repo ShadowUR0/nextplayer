@@ -35,7 +35,7 @@ data class PlayerPreferences(
 
     // Player Interface
     val controllerAutoHideTimeout: Int = DEFAULT_CONTROLLER_AUTO_HIDE_TIMEOUT,
-    val controlButtonsPosition: ControlButtonsPosition = ControlButtonsPosition.LEFT,
+    val controlButtonsPosition: ControlButtonsPosition = ControlButtonsPosition.CENTER,
     val hidePlayerButtonsBackground: Boolean = false,
     val useMaterialYouControls: Boolean = false,
 
