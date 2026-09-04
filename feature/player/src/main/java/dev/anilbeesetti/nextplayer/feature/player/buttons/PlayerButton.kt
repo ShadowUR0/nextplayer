@@ -3,6 +3,7 @@ package dev.anilbeesetti.nextplayer.feature.player.buttons
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
@@ -24,6 +25,9 @@ import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
+import dev.anilbeesetti.nextplayer.core.ui.glass.LiquidGlassStyle
+import dev.anilbeesetti.nextplayer.core.ui.glass.LocalLiquidGlassBackdrop
+import dev.anilbeesetti.nextplayer.core.ui.glass.liquidGlass
 import dev.anilbeesetti.nextplayer.feature.player.LocalUseMaterialYouControls
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -67,7 +71,43 @@ fun PlayerButton(
         }
     }
 
-    if (LocalUseMaterialYouControls.current) {
+    val glassBackdrop = LocalLiquidGlassBackdrop.current
+
+    if (glassBackdrop != null) {
+        CompositionLocalProvider(
+            LocalContentColor provides Color.White,
+            LocalRippleConfiguration provides RippleConfiguration(
+                color = Color.White,
+                rippleAlpha = RippleAlpha(
+                    pressedAlpha = 0.32f,
+                    focusedAlpha = 0.24f,
+                    draggedAlpha = 0.24f,
+                    hoveredAlpha = 0.18f,
+                ),
+            ),
+        ) {
+            IconButton(
+                onClick = {},
+                enabled = isEnabled,
+                modifier = modifier
+                    .liquidGlass(
+                        backdrop = glassBackdrop,
+                        style = LiquidGlassStyle.CONTROL,
+                        shape = CircleShape,
+                        surfaceColor = if (containerColor.alpha > 0f) containerColor else Color.Unspecified,
+                    )
+                    .tvFocusRing(isTv),
+                interactionSource = interactionSource,
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = Color.Transparent,
+                    contentColor = Color.White,
+                    disabledContainerColor = Color.Transparent,
+                    disabledContentColor = Color.White.copy(alpha = 0.38f),
+                ),
+                content = content,
+            )
+        }
+    } else if (LocalUseMaterialYouControls.current) {
         FilledTonalIconButton(
             onClick = {},
             enabled = isEnabled,
