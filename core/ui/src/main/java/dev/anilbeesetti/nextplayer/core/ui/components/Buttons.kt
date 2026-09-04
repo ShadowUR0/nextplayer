@@ -7,6 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import dev.anilbeesetti.nextplayer.core.ui.R
+import dev.anilbeesetti.nextplayer.core.ui.glass.LiquidGlassButton
+import dev.anilbeesetti.nextplayer.core.ui.glass.LocalLiquidGlassBackdrop
 
 @Composable
 fun DoneButton(
@@ -14,12 +16,24 @@ fun DoneButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
 ) {
-    TextButton(
-        enabled = enabled,
-        onClick = onClick,
-        modifier = modifier.tvFocusRing(shape = RoundedCornerShape(50)),
-    ) {
-        Text(text = stringResource(R.string.done))
+    val backdrop = LocalLiquidGlassBackdrop.current
+    if (backdrop != null) {
+        LiquidGlassButton(
+            enabled = enabled,
+            onClick = onClick,
+            modifier = modifier.tvFocusRing(shape = RoundedCornerShape(50)),
+            shape = RoundedCornerShape(50),
+        ) {
+            Text(text = stringResource(R.string.done))
+        }
+    } else {
+        TextButton(
+            enabled = enabled,
+            onClick = onClick,
+            modifier = modifier.tvFocusRing(shape = RoundedCornerShape(50)),
+        ) {
+            Text(text = stringResource(R.string.done))
+        }
     }
 }
 
@@ -29,11 +43,23 @@ fun CancelButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
 ) {
-    TextButton(
-        enabled = enabled,
-        onClick = onClick,
-        modifier = modifier.tvFocusRing(shape = RoundedCornerShape(50)),
-    ) {
-        Text(text = stringResource(R.string.cancel))
+    val backdrop = LocalLiquidGlassBackdrop.current
+    if (backdrop != null) {
+        LiquidGlassButton(
+            enabled = enabled,
+            onClick = onClick,
+            modifier = modifier.tvFocusRing(shape = RoundedCornerShape(50)),
+            shape = RoundedCornerShape(50),
+        ) {
+            Text(text = stringResource(R.string.cancel))
+        }
+    } else {
+        TextButton(
+            enabled = enabled,
+            onClick = onClick,
+            modifier = modifier.tvFocusRing(shape = RoundedCornerShape(50)),
+        ) {
+            Text(text = stringResource(R.string.cancel))
+        }
     }
 }
