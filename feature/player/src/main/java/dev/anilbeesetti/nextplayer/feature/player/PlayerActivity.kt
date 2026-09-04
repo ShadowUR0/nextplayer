@@ -36,6 +36,8 @@ import dev.anilbeesetti.nextplayer.core.common.extensions.getInitialDirectoryUri
 import dev.anilbeesetti.nextplayer.core.common.extensions.getMediaContentUri
 import dev.anilbeesetti.nextplayer.core.common.service.registerForSuspendActivityResult
 import dev.anilbeesetti.nextplayer.core.data.repository.PlaylistRepository
+import dev.anilbeesetti.nextplayer.core.ui.glass.LocalLiquidGlassBackdrop
+import dev.anilbeesetti.nextplayer.core.ui.glass.rememberLiquidGlassBackdrop
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 import dev.anilbeesetti.nextplayer.feature.player.extensions.OpenDocumentAtInitialUri
 import dev.anilbeesetti.nextplayer.feature.player.extensions.setExtras
@@ -104,6 +106,7 @@ class PlayerActivity : ComponentActivity() {
         setContent {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             var player by remember { mutableStateOf<MediaController?>(null) }
+            val liquidGlassBackdrop = rememberLiquidGlassBackdrop()
 
             LifecycleStartEffect(Unit) {
                 maybeInitControllerFuture()
@@ -116,7 +119,10 @@ class PlayerActivity : ComponentActivity() {
                 }
             }
 
-            CompositionLocalProvider(LocalUseMaterialYouControls provides (uiState.playerPreferences?.useMaterialYouControls == true)) {
+            CompositionLocalProvider(
+                LocalUseMaterialYouControls provides (uiState.playerPreferences?.useMaterialYouControls == true),
+                LocalLiquidGlassBackdrop provides liquidGlassBackdrop,
+            ) {
                 NextPlayerTheme(darkTheme = true) {
                     MediaPlayerScreen(
                         player = player,
