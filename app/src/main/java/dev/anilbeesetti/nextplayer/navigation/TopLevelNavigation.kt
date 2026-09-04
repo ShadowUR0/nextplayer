@@ -15,16 +15,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
@@ -46,6 +44,9 @@ import androidx.navigation3.scene.Scene
 import dev.anilbeesetti.nextplayer.core.ui.R
 import dev.anilbeesetti.nextplayer.core.ui.components.tvFocusRing
 import dev.anilbeesetti.nextplayer.core.ui.designsystem.NextIcons
+import dev.anilbeesetti.nextplayer.core.ui.glass.LiquidGlassStyle
+import dev.anilbeesetti.nextplayer.core.ui.glass.LocalLiquidGlassBackdrop
+import dev.anilbeesetti.nextplayer.core.ui.glass.liquidGlass
 import dev.anilbeesetti.nextplayer.feature.network.navigation.NetworkRoute
 import dev.anilbeesetti.nextplayer.feature.playlist.navigation.PlaylistListRoute
 import dev.anilbeesetti.nextplayer.feature.videopicker.navigation.MediaPickerRoute
@@ -74,7 +75,7 @@ fun rememberTopLevelNavState(): TopLevelNavState {
         backStack.ensureRoot(dest.route)
         dest.route to backStack
     }
-    val selectedIndex = rememberSaveable { mutableIntStateOf(0) }
+    val selectedIndex = rememberSaveable { androidx.compose.runtime.mutableIntStateOf(0) }
     return remember(backStacks, selectedIndex) {
         TopLevelNavState(destinations, backStacks, selectedIndex)
     }
@@ -148,7 +149,22 @@ fun TopLevelNavState.isNavigationBetweenTopLevelDestinations(initialState: Scene
 
 @Composable
 fun NextNavigationBar(state: TopLevelNavState) {
-    NavigationBar {
+    val backdrop = LocalLiquidGlassBackdrop.current
+    val barModifier = if (backdrop != null) {
+        Modifier.liquidGlass(
+            backdrop = backdrop,
+            style = LiquidGlassStyle.PANEL,
+            shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp),
+            surfaceColor = Color.Black.copy(alpha = 0.20f),
+        )
+    } else {
+        Modifier
+    }
+
+    NavigationBar(
+        modifier = barModifier,
+        containerColor = if (backdrop != null) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer,
+    ) {
         state.destinations.forEach { dest ->
             NavigationBarItem(
                 selected = state.topLevelRoute == dest.route,
@@ -156,6 +172,17 @@ fun NextNavigationBar(state: TopLevelNavState) {
                 icon = { Icon(imageVector = dest.icon, contentDescription = null) },
                 label = { Text(text = stringResource(dest.labelRes)) },
                 modifier = Modifier.tvFocusRing(shape = RoundedCornerShape(24.dp)),
+                colors = if (backdrop != null) {
+                    NavigationBarItemDefaults.colors(
+                        selectedIconColor = Color.White,
+                        selectedTextColor = Color.White,
+                        unselectedIconColor = Color.White.copy(alpha = 0.68f),
+                        unselectedTextColor = Color.White.copy(alpha = 0.68f),
+                        indicatorColor = Color.White.copy(alpha = 0.16f),
+                    )
+                } else {
+                    NavigationBarItemDefaults.colors()
+                },
             )
         }
     }
@@ -163,9 +190,25 @@ fun NextNavigationBar(state: TopLevelNavState) {
 
 @Composable
 fun NextNavigationRail(state: TopLevelNavState) {
+    val backdrop = LocalLiquidGlassBackdrop.current
+    val railModifier = Modifier
+        .fillMaxHeight()
+        .then(
+            if (backdrop != null) {
+                Modifier.liquidGlass(
+                    backdrop = backdrop,
+                    style = LiquidGlassStyle.PANEL,
+                    shape = RoundedCornerShape(topEnd = 30.dp, bottomEnd = 30.dp),
+                    surfaceColor = Color.Black.copy(alpha = 0.20f),
+                )
+            } else {
+                Modifier
+            },
+        )
+
     NavigationRail(
-        modifier = Modifier.fillMaxHeight(),
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        modifier = railModifier,
+        containerColor = if (backdrop != null) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer,
     ) {
         Column(
             modifier = Modifier.fillMaxHeight(),
@@ -174,21 +217,32 @@ fun NextNavigationRail(state: TopLevelNavState) {
         ) {
             state.destinations.forEach { dest ->
                 val selected = state.topLevelRoute == dest.route
+                val itemBackground = if (backdrop != null && selected) {
+                    Modifier.liquidGlass(
+                        backdrop = backdrop,
+                        style = LiquidGlassStyle.CONTROL,
+                        shape = CircleShape,
+                        surfaceColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.24f),
+                    )
+                } else {
+                    Modifier.background(
+                        if (selected) {
+                            MaterialTheme.colorScheme.secondaryContainer
+                        } else {
+                            Color.Transparent
+                        },
+                    )
+                }
+
                 Box(
                     Modifier
                         .tvFocusRing(shape = RoundedCornerShape(99.dp))
                         .clip(CircleShape)
+                        .then(itemBackground)
                         .selectable(
-                            selected = state.topLevelRoute == dest.route,
+                            selected = selected,
                             onClick = { state.switchTo(dest.route) },
                             role = Role.Tab,
-                        )
-                        .background(
-                            if (selected) {
-                                MaterialTheme.colorScheme.secondaryContainer
-                            } else {
-                                Color.Transparent
-                            }
                         )
                         .padding(16.dp),
                     contentAlignment = Alignment.Center,
@@ -197,7 +251,8 @@ fun NextNavigationRail(state: TopLevelNavState) {
                     Icon(
                         imageVector = dest.icon,
                         contentDescription = null,
-                        modifier = Modifier.size(24.dp)
+                        tint = if (backdrop != null) Color.White else MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(24.dp),
                     )
                 }
             }
