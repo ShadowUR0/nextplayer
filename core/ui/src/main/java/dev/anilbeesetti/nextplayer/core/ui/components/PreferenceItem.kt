@@ -1,13 +1,10 @@
 package dev.anilbeesetti.nextplayer.core.ui.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -77,6 +74,7 @@ fun SelectablePreference(
 ) {
     NextSegmentedListItem(
         modifier = modifier,
+        selected = selected,
         onClick = onClick,
         onLongClick = onLongClick,
         isFirstItem = isFirstItem,
@@ -102,10 +100,9 @@ fun SelectablePreference(
             }
         },
         trailingContent = {
-            Checkbox(
+            LiquidGlassCheckbox(
                 modifier = Modifier.semantics { contentDescription = title },
                 checked = selected,
-                onCheckedChange = null,
             )
         },
     )
@@ -125,6 +122,7 @@ fun SingleSelectablePreference(
 ) {
     NextSegmentedListItem(
         modifier = modifier,
+        selected = selected,
         onClick = onClick,
         onLongClick = onLongClick,
         isFirstItem = isFirstItem,
@@ -144,10 +142,7 @@ fun SingleSelectablePreference(
             }
         },
         leadingContent = {
-            RadioButton(
-                selected = selected,
-                onClick = null,
-            )
+            LiquidGlassRadio(selected = selected)
         },
     )
 }

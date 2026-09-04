@@ -2,7 +2,8 @@ package dev.anilbeesetti.nextplayer.core.ui.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.background
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
@@ -15,9 +16,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.LayoutDirection
@@ -39,15 +42,22 @@ fun NextSwitch(
 
     if (glassBackdrop != null) {
         val layoutDirection = LocalLayoutDirection.current
+        val haptic = LocalHapticFeedback.current
         val travel by animateDpAsState(
             targetValue = if (checked) 22.dp else 0.dp,
+            animationSpec = spring(dampingRatio = 0.76f, stiffness = 420f),
             label = "liquidSwitchTravel",
+        )
+        val thumbScale by animateFloatAsState(
+            targetValue = if (checked) 1.06f else 1f,
+            animationSpec = spring(dampingRatio = 0.74f, stiffness = 380f),
+            label = "liquidSwitchThumbScale",
         )
         val trackColor by animateColorAsState(
             targetValue = when {
-                !enabled -> Color.White.copy(alpha = 0.10f)
-                checked -> Color(0xFF30D158).copy(alpha = 0.82f)
-                else -> Color.White.copy(alpha = 0.18f)
+                !enabled -> Color.White.copy(alpha = 0.08f)
+                checked -> Color(0xFF30D158).copy(alpha = 0.42f)
+                else -> Color.White.copy(alpha = 0.10f)
             },
             label = "liquidSwitchTrack",
         )
@@ -55,15 +65,22 @@ fun NextSwitch(
         Box(
             modifier = modifier
                 .size(width = 52.dp, height = 30.dp)
-                .clip(CircleShape)
-                .background(trackColor)
+                .liquidGlass(
+                    backdrop = glassBackdrop,
+                    style = LiquidGlassStyle.CONTROL,
+                    shape = CircleShape,
+                    surfaceColor = trackColor,
+                )
                 .then(
                     if (onCheckedChange != null) {
                         Modifier.toggleable(
                             value = checked,
                             enabled = enabled,
                             role = Role.Switch,
-                            onValueChange = onCheckedChange,
+                            onValueChange = { newValue ->
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                onCheckedChange(newValue)
+                            },
                         )
                     } else {
                         Modifier
@@ -76,11 +93,15 @@ fun NextSwitch(
                 modifier = Modifier
                     .offset(x = signedTravel)
                     .size(30.dp)
+                    .graphicsLayer {
+                        scaleX = thumbScale
+                        scaleY = thumbScale
+                    }
                     .liquidGlass(
                         backdrop = glassBackdrop,
                         style = LiquidGlassStyle.CONTROL,
                         shape = CircleShape,
-                        surfaceColor = Color.White.copy(alpha = if (enabled) 0.26f else 0.10f),
+                        surfaceColor = Color.White.copy(alpha = if (enabled) 0.22f else 0.08f),
                     ),
                 contentAlignment = Alignment.Center,
             ) {

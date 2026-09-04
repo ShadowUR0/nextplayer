@@ -6,13 +6,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.material3.RadioButton
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import dev.anilbeesetti.nextplayer.core.ui.glass.LiquidGlassStyle
+import dev.anilbeesetti.nextplayer.core.ui.glass.LocalLiquidGlassBackdrop
+import dev.anilbeesetti.nextplayer.core.ui.glass.liquidGlass
 
 @Composable
 fun RadioTextButton(
@@ -21,9 +26,26 @@ fun RadioTextButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val backdrop = LocalLiquidGlassBackdrop.current
+    val shape = RoundedCornerShape(18.dp)
+    val baseModifier = modifier.fillMaxWidth()
+    val surfaceModifier = if (backdrop != null) {
+        baseModifier.liquidGlass(
+            backdrop = backdrop,
+            style = LiquidGlassStyle.CONTROL,
+            shape = shape,
+            surfaceColor = if (selected) {
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+            } else {
+                Color.Unspecified
+            },
+        )
+    } else {
+        baseModifier
+    }
+
     Row(
-        modifier = modifier
-            .fillMaxWidth()
+        modifier = surfaceModifier
             .selectable(
                 selected = selected,
                 onClick = onClick,
@@ -32,11 +54,8 @@ fun RadioTextButton(
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        RadioButton(
-            selected = selected,
-            onClick = null,
-        )
-        Spacer(modifier = Modifier.width(8.dp))
+        LiquidGlassRadio(selected = selected)
+        Spacer(modifier = Modifier.width(10.dp))
         Text(text = text)
     }
 }
