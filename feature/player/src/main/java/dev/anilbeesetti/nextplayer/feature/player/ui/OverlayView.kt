@@ -5,6 +5,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -16,11 +17,9 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -32,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -39,6 +39,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.anilbeesetti.nextplayer.core.common.extensions.isTelevision
 import dev.anilbeesetti.nextplayer.core.ui.components.requestFocusUntilLanded
+import dev.anilbeesetti.nextplayer.core.ui.glass.LiquidGlassStyle
+import dev.anilbeesetti.nextplayer.core.ui.glass.LiquidGlassSurface
+import dev.anilbeesetti.nextplayer.core.ui.glass.LocalLiquidGlassBackdrop
 import dev.anilbeesetti.nextplayer.core.ui.theme.NextPlayerTheme
 
 @Composable
@@ -55,6 +58,8 @@ fun BoxScope.OverlayView(
     val endPadding = WindowInsets.safeDrawing
         .asPaddingValues()
         .calculateEndPadding(layoutDirection)
+    val glassBackdrop = LocalLiquidGlassBackdrop.current
+    val isPortrait = configuration.isPortrait
 
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(show) {
@@ -65,31 +70,35 @@ fun BoxScope.OverlayView(
 
     AnimatedVisibility(
         modifier = Modifier.align(
-            if (configuration.isPortrait) {
+            if (isPortrait) {
                 Alignment.BottomCenter
             } else {
                 Alignment.CenterEnd
             },
         ),
         visible = show,
-        enter = if (configuration.isPortrait) slideInVertically { it } else slideInHorizontally { it },
-        exit = if (configuration.isPortrait) slideOutVertically { it } else slideOutHorizontally { it },
+        enter = if (isPortrait) slideInVertically { it } else slideInHorizontally { it },
+        exit = if (isPortrait) slideOutVertically { it } else slideOutHorizontally { it },
     ) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            modifier = modifier
-                .then(
-                    if (configuration.isPortrait) {
-                        Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight(0.45f)
-                    } else {
-                        Modifier
-                            .fillMaxWidth(0.45f)
-                            .fillMaxHeight()
-                    },
-                ),
-        ) {
+        val panelModifier = modifier.then(
+            if (isPortrait) {
+                Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.45f)
+            } else {
+                Modifier
+                    .fillMaxWidth(0.45f)
+                    .fillMaxHeight()
+            },
+        )
+        val panelShape = if (isPortrait) {
+            RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
+        } else {
+            RoundedCornerShape(topStart = 30.dp, bottomStart = 30.dp)
+        }
+
+        @Composable
+        fun PanelContent() {
             Column(
                 modifier = Modifier
                     .focusRequester(focusRequester)
@@ -101,9 +110,29 @@ fun BoxScope.OverlayView(
                     modifier = Modifier.padding(horizontal = 24.dp),
                     text = title,
                     style = MaterialTheme.typography.headlineSmall,
+                    color = if (glassBackdrop != null) Color.White else MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(modifier = Modifier.size(8.dp))
                 content()
+            }
+        }
+
+        if (glassBackdrop != null) {
+            LiquidGlassSurface(
+                backdrop = glassBackdrop,
+                modifier = panelModifier,
+                style = LiquidGlassStyle.STRONG_PANEL,
+                shape = panelShape,
+                surfaceColor = Color.Black.copy(alpha = 0.28f),
+            ) {
+                PanelContent()
+            }
+        } else {
+            Surface(
+                shape = panelShape,
+                modifier = panelModifier,
+            ) {
+                PanelContent()
             }
         }
     }
